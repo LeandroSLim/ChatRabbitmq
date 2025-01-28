@@ -27,31 +27,31 @@ public class Emissor {
 
         System.out.print("User: ");
         Scanner scanner = new Scanner(System.in);
-        String user = scanner.nextLine(); // Nome do usuário
+        String user = scanner.nextLine(); 
 
-        // Declara a fila do usuário
+      
         channel.queueDeclare(user, false, false, false, null);
 
-        // Criando e iniciando a thread para receber mensagens
+        
         Thread receptorThread = new Thread(() -> {
             try {
-                // Registra um consumidor na fila do usuário
+               
                 channel.basicConsume(user, true, (consumerTag, delivery) -> {
                     try {
-                        // Desempacota a mensagem recebida
+                       
                         byte[] body = delivery.getBody();
                         ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(body));
                         List<Object> messageData = (List<Object>) ois.readObject();
 
-                        // Extrai os dados da lista
+                       
                         String data = (String) messageData.get(0);
                         String hora = (String) messageData.get(1);
                         String remetente = (String) messageData.get(2);
                         String mensagem = (String) messageData.get(3);
 
-                        // Exibe a mensagem no formato desejado
+                       
                         System.out.println(String.format("(%s às %s) %s diz: %s", data, hora, remetente, mensagem));
-                        System.out.print(user + ">> "); // Mantém o prompt ativo
+                        System.out.print(user + ">> "); 
                     } catch (ClassNotFoundException e) {
                         System.out.println("Erro: A classe não foi encontrada ao desempacotar a mensagem.");
                     } catch (Exception e) {
@@ -63,9 +63,9 @@ public class Emissor {
             }
         });
 
-        receptorThread.start(); // Inicia a thread
+        receptorThread.start(); 
 
-        // Lógica principal do emissor
+       
         String message;
         String messageReceptor = "";
 
@@ -77,7 +77,7 @@ public class Emissor {
                 break;
             }
 
-            if (message.startsWith("@")) { // Define o receptor para a próxima mensagem
+            if (message.startsWith("@")) { 
                 messageReceptor = message.substring(1);
                 channel.queueDeclare(messageReceptor, false, false, false, null);
                 continue;
@@ -85,31 +85,31 @@ public class Emissor {
 
            
 
-            // Formata a data e hora
+           
             String data = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
             String hora = new SimpleDateFormat("HH:mm").format(new Date());
 
-            // Cria a lista com os dados
+            
             List<Object> messageData = new ArrayList<>();
-            messageData.add(data);   // data
-            messageData.add(hora);   // hora
-            messageData.add(user);   // remetente
-            messageData.add(message); // mensagem
+            messageData.add(data);   
+            messageData.add(hora);   
+            messageData.add(user);   
+            messageData.add(message); 
 
-            // Serializa a lista para enviar
+          
             byte[] serializedMessage = serialize(messageData);
 
-            // Envia a mensagem serializada para o receptor
+            
             channel.basicPublish("", messageReceptor, null, serializedMessage);
         }
 
-        // Encerrando a conexão e o canal
+      
         channel.close();
         connection.close();
         System.out.println("Conexão encerrada.");
     }
 
-    // Método para serializar a lista
+   
     public static byte[] serialize(Object obj) throws Exception {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(); 
              ObjectOutputStream out = new ObjectOutputStream(bos)) {
